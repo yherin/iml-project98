@@ -1,0 +1,28 @@
+---
+title: "NPF feature correlation"
+author: "Jack Sheridan"
+date: "25/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "~/Studies/iml/iml-project98/")
+library(tidyverse)
+library(wrapr)
+```
+## Variables with >0.95 correlation to other variables
+
+```{r pressure, echo=FALSE}
+
+df <- read.csv('./npf_train.csv')
+df$class2 <- df$class4 != 'nonevent'
+df2 <- within(df, rm("partlybad", "class2","class4", "id", "date"))
+highCorr <- data.frame(cor(df2))
+corrDF <- data.frame(row=rownames(highCorr)[row(highCorr)[upper.tri(highCorr)]], 
+                     col=colnames(highCorr)[col(highCorr)[upper.tri(highCorr)]], 
+                     corr=highCorr[upper.tri(highCorr)])
+toExclude <- corrDF %>% filter(abs(corr)>0.95)
+toExclude <- toExclude[orderv(c(toExclude['row'],toExclude['corr']), decreasing = c(FALSE,TRUE )),]
+toExclude
+```
