@@ -2,7 +2,7 @@
 title: "NPF feature correlation"
 author: "Jack Sheridan"
 date: "25/11/2021"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
