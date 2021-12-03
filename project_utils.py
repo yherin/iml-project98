@@ -49,9 +49,8 @@ def runModel(model: ClassifierMixin, x_train: ndarray, x_valid: ndarray, y_train
 
     return getNiceModelName(model), accuracy_train, perplex_train, accuracy_valid, perplex_valid
 
-def perplexity(x_prob):
-    x_prob = np.mean(x_prob)
-    return np.exp(-1*(np.log(x_prob)))
+def perplexity(x_prob):   
+    return np.exp(-1 * (np.mean(np.log(x_prob))))
 
 def getNiceModelName(m):
     return m.__str__().split('(')[0]
