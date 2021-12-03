@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 from pca import pca
+from sklearn.preprocessing import StandardScaler
 
 
 npf = pd.read_csv("npf_train.csv")
@@ -35,11 +36,14 @@ x_testing = npf1
 X = x_training
 y = y_training
 
+scaler = StandardScaler()
+scaler.fit(X)
+X=scaler.transform(X)
 # Initialize to reduce the data up to the number of componentes that explains 95% of the variance.
 model = pca(n_components=0.95)
 
 # Or reduce the data towards 2 PCs
-model = pca(n_components=8)
+model = pca(n_components=25)
 
 # Fit transform
 results = model.fit_transform(X)
