@@ -90,9 +90,9 @@ def Read_data_output_class2_or_testdata(binary = bool, training_data = bool, fil
 def training_with_PCA(x_training, *num_PCA):
     #outputs PCA
     # example:
-    # x_PCA = training_with_PCA(x,15)
+    # [x_PCA,pca] = training_with_PCA(x,15)
     # if required all PCA values
-    # x_PCA = training_with_PCA(x)
+    # [x_PCA, pca] = training_with_PCA(x)
     pca = PCA()
     x_training_PCA = pca.fit_transform(x_training)
     if len(num_PCA)>0:
