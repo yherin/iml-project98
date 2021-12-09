@@ -113,3 +113,16 @@ def scaling(x):
     scaler.fit(x)
     x_scaled = scaler.transform(x)
     return x_scaled
+
+def combine_data(accuracy, test_pred, test_pred_prob):
+    test_pred = test_pred.T
+    test_pred_prob = test_pred_prob[:, 0]
+    string_test_pred = np.empty([len(test_pred), 1], dtype="object")
+    for i in range(0, len(test_pred)):
+        if test_pred[i] == 1:
+            string_test_pred[i, 0] = 'event'
+        else:
+            string_test_pred[i, 0] = 'nonevent'
+
+    df = pd.DataFrame(test_pred_prob, string_test_pred)
+    print("write CSV file", accuracy)
