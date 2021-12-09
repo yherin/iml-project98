@@ -8,7 +8,7 @@ from numpy import ndarray
 from sklearn.base import ClassifierMixin
 from sklearn.decomposition import PCA
 from warnings import warn
-
+from sklearn.metrics import log_loss
 
 def split_and_scale(X: ndarray, y: ndarray, validation_split: float = 0.33) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
     """Split train data into training and validation data, then scale the data.
@@ -45,8 +45,8 @@ def runModel(model: ClassifierMixin, x_train: ndarray, x_valid: ndarray, y_train
         #probs_valid = model.predict_log_proba(x_valid)
         probs_train = model.predict_proba(x_train)
         probs_valid = model.predict_proba(x_valid)
-        perplex_train = perplexity(y_train, probs_train)
-        perplex_valid = perplexity(y_valid, probs_valid)
+        perplex_train = perplexity(y_train, probs_train[:,0])
+        perplex_valid = perplexity(y_valid, probs_valid[:,0])
     except AttributeError:
         warn(f'Model {getNiceModelName(model)} could not predict probabilities')
     
@@ -54,7 +54,7 @@ def runModel(model: ClassifierMixin, x_train: ndarray, x_valid: ndarray, y_train
 
 
 def perplexity(y, y_prob):
-    return np.exp(-1 * (np.mean(np.log(np.where(y == 1, y_prob, 1-y_prob)))))
+    return np.exp(np.mean(log_loss(y, y_prob)))
 
 def getNiceModelName(m):
     return m.__str__().split('(')[0]
