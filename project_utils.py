@@ -11,7 +11,7 @@ from sklearn.decomposition import PCA
 from warnings import warn
 from sklearn.metrics import log_loss
 from sklearn.model_selection import RepeatedStratifiedKFold, RandomizedSearchCV
-from scipy.stats import uniform
+import pickle
 
 import copy
 
@@ -111,6 +111,7 @@ def optimiseModelParams(model: ClassifierMixin, paramDistributions: dict, x: nda
     kfolds = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=n_iterations)
     searcher = RandomizedSearchCV(estimator=model, param_distributions=paramDistributions, n_iter = n_iterations, n_jobs=-1, refit=True, cv=kfolds)
     searcher.fit(x,y)
+    pickle.dump(pd.DataFrame(searcher.cv_results_), open(f'{getNiceModelName(model)}-parameter_tuning.pickle', 'wb'))
     return searcher.best_params_
     
 
