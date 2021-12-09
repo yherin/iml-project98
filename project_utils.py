@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Tuple
+from scipy.sparse.construct import rand
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import numpy as np
@@ -9,6 +10,10 @@ from sklearn.base import ClassifierMixin
 from sklearn.decomposition import PCA
 from warnings import warn
 from sklearn.metrics import log_loss
+from sklearn.model_selection import RepeatedStratifiedKFold, RandomizedSearchCV
+from scipy.stats import uniform
+
+import copy
 
 def split_and_scale(X: ndarray, y: ndarray, validation_split: float = 0.33) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
     """Split train data into training and validation data, then scale the data.
@@ -50,6 +55,64 @@ def runModel(model: ClassifierMixin, x_train: ndarray, x_valid: ndarray, y_train
     
     return getNiceModelName(model), accuracy_train, perplex_train, accuracy_valid, perplex_valid
 
+
+def runModelCV(model: ClassifierMixin, model_params: dict, x: ndarray, y: ndarray, n_iterations: int=10, k_folds: int=5) -> Tuple[float, float, float, float]:
+    per_tr = []
+    per_te = []
+    acc_tr = []
+    acc_te = []
+    modelIndices = []
+    modelDict = {}
+    modelParams = []
+
+    if model == None:
+        raise ValueError("no model supplied")
+    if not isinstance(model, ClassifierMixin):
+        warn("did you pass a valid sklearn model?")
+    optimisedParams = optimiseModelParams(model, model_params, x, y )
+    model.set_params(**optimisedParams)
+    kfolds = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=n_iterations)
+
+    j = 0
+    for test_idx, train_idx in kfolds.split(x, y):
+        X_train, X_test = x[train_idx], x[test_idx]
+        y_train, y_test = y[train_idx], y[test_idx]
+        
+        model = model.fit(X_train, y_train)
+        accuracy_train = model.score(X=X_train, y=y_train)
+        accuracy_test = model.score(X=X_test, y=y_test)
+
+        perplex_train = np.inf
+        perplex_test = np.inf
+
+        try:
+            probs_train = model.predict_proba(X_train)
+            probs_test = model.predict_proba(X_test)
+            perplex_train = perplexity(y_train, probs_train[:,0])
+            perplex_test = perplexity(y_test, probs_test[:,0])
+        except AttributeError:
+            warn(f'Model {getNiceModelName(model)} could not predict probabilities')
+        
+        j += 1
+        #save everything
+        modelIndex = f'{getNiceModelName(model)}-{j}'
+        modelIndices.append(modelIndex)
+        per_tr.append(perplex_train)
+        per_te.append(perplex_test)
+        acc_tr.append(accuracy_train)
+        acc_te.append(accuracy_test)
+
+        modelDict[modelIndex] = copy.deepcopy(model)
+    print( f'runModelCV call done' )
+    model_results = pd.DataFrame({"Train Accuracy": acc_tr, "Train Perplex": per_tr, "Validation Accuracy": acc_te, "Validation Perplex": per_te, "Params": str(optimisedParams)}, index=modelIndices)
+    return model_results, modelDict
+
+def optimiseModelParams(model: ClassifierMixin, paramDistributions: dict, x: ndarray, y: ndarray, n_iterations: int=20, k_folds: int=10):
+    kfolds = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=n_iterations)
+    searcher = RandomizedSearchCV(estimator=model, param_distributions=paramDistributions, n_iter = n_iterations, n_jobs=-1, refit=True, cv=kfolds)
+    searcher.fit(x,y)
+    return searcher.best_params_
+    
 
 def perplexity(y, y_prob):
     return np.exp(np.mean(log_loss(y, y_prob)))
