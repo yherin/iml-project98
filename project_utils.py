@@ -6,8 +6,9 @@ import numpy as np
 import pandas as pd
 from numpy import ndarray
 from sklearn.base import ClassifierMixin
+from sklearn.decomposition import PCA
 from warnings import warn
-
+from sklearn.metrics import log_loss
 
 def split_and_scale(X: ndarray, y: ndarray, validation_split: float = 0.33) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
     """Split train data into training and validation data, then scale the data.
@@ -46,12 +47,69 @@ def runModel(model: ClassifierMixin, x_train: ndarray, x_valid: ndarray, y_train
         perplex_valid = perplexity(y_valid, probs_valid[:,0])
     except AttributeError:
         warn(f'Model {getNiceModelName(model)} could not predict probabilities')
-
+    
     return getNiceModelName(model), accuracy_train, perplex_train, accuracy_valid, perplex_valid
 
 
 def perplexity(y, y_prob):
-    return np.exp(-1 * (np.mean(np.log(np.where(y == 1, y_prob, 1-y_prob)))))
+    return np.exp(np.mean(log_loss(y, y_prob)))
 
 def getNiceModelName(m):
     return m.__str__().split('(')[0]
+
+def Read_data_output_class2_or_testdata(binary = bool, training_data = bool, filename="npf_train.csv"):
+    # Reads data from training or test files, and outputs x and y if the data is for training for class 2
+    # y output can be 1 or 0 or strings event/nonevent, if is test data y is 0
+    # Example :
+    #[x,y] = Read_data_output_class2_or_testdata(binary=True, training_data=True, filename = "npf_train.csv")
+    #[x1,y1] = Read_data_output_class2_or_testdata(binary=False, training_data=False, filename = "npf_test_hidden.csv")
+
+    npf = pd.read_csv(filename)
+    npf = npf.set_index("date")
+    npf["class4"] = npf["class4"].astype("category")
+    npf = npf.drop("id",axis=1)
+    npf = npf.drop("partlybad",axis=1)
+    if training_data:
+        class2 = np.array(["event"]*npf.shape[0],dtype="object")
+        class2[npf["class4"]=="nonevent"] = "nonevent"
+        npf["class2"] = class2
+        npf["class2"] = npf["class2"].astype("category")
+        y = npf["class2"]
+        x = npf.drop("class2", axis=1)
+        #this to output 1/0 instead of string event/nonevent
+        if binary:
+            y_b = pd.get_dummies(y, prefix=['event', "nonevent"])
+            y = y_b.iloc[:,0]
+            y = y.to_numpy()
+    else:
+        y = 0
+        x = npf
+    x = x.drop("class4", axis=1)
+    return x,y
+
+def training_with_PCA(x_training, *num_PCA):
+    #outputs PCA
+    # example:
+    # [x_PCA,pca] = training_with_PCA(x,15)
+    # if required all PCA values
+    # [x_PCA, pca] = training_with_PCA(x)
+    pca = PCA()
+    x_training_PCA = pca.fit_transform(x_training)
+    if len(num_PCA)>0:
+        num_PCA = int(num_PCA[0])
+        x_training_PCA = x_training_PCA[:, :num_PCA]
+    return x_training_PCA, pca
+
+def split_training_validate(x,y,n):
+    index = np.random.choice(len(x), n, replace=False)
+    x_training = x[index, :]
+    y_training = y[index]
+    x_validate = np.delete(x, index, axis=0)
+    y_validate = np.delete(y, index, axis=0)
+    return x_training, y_training, x_validate, y_validate
+
+def scaling(x):
+    scaler = StandardScaler()
+    scaler.fit(x)
+    x_scaled = scaler.transform(x)
+    return x_scaled
