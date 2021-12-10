@@ -39,6 +39,6 @@ def writeFile( filePath: str, data: DataFrame, modelScore: float):
     print(f'File written to {filePath}')
 
 #testing
-filePath='test.csv'
-dataz = pd.DataFrame({'class4': ['Ia', 'Ib', 'II', 'Ia', 'nonevent' ], 'p': [0.3, 0.4, 0.99, 0.01, 0.512125]})
-writeFile(filePath, dataz, 0.3)
+#filePath='test.csv'
+#dataz = pd.DataFrame({'class4': ['Ia', 'Ib', 'II', 'Ia', 'nonevent' ], 'p': [0.3, 0.4, 0.99, 0.01, 0.512125]})
+#writeFile(filePath, dataz, 0.3)
