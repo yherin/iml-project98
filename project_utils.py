@@ -10,10 +10,14 @@ from sklearn.base import ClassifierMixin
 from sklearn.decomposition import PCA
 from warnings import warn
 from sklearn.metrics import log_loss
-from sklearn.model_selection import RepeatedStratifiedKFold, RandomizedSearchCV
+from sklearn.model_selection import RepeatedStratifiedKFold, RandomizedSearchCV, KFold
 import pickle
 
 import copy
+
+import time
+from sklearn.pipeline import make_pipeline
+from mlxtend.feature_selection import SequentialFeatureSelector as SFS
 
 def split_and_scale(X: ndarray, y: ndarray, validation_split: float = 0.33) -> Tuple[ndarray, ndarray, ndarray, ndarray]:
     """Split train data into training and validation data, then scale the data.
@@ -113,7 +117,6 @@ def optimiseModelParams(model: ClassifierMixin, paramDistributions: dict, x: nda
     searcher.fit(x,y)
     pickle.dump(pd.DataFrame(searcher.cv_results_), open(f'{getNiceModelName(model)}-parameter_tuning.pickle', 'wb'))
     return searcher.best_params_
-    
 
 def perplexity(y, y_prob):
     return np.exp(np.mean(log_loss(y, y_prob)))
@@ -188,3 +191,30 @@ def scaling(x):
     scaler.fit(x)
     x_scaled = scaler.transform(x)
     return x_scaled
+
+def runModelStepwiseSelection(model: ClassifierMixin, x: ndarray, y: ndarray):
+    time_start = time.time()
+    
+    if model == None:
+        raise ValueError("no model supplied")
+    if not isinstance(model, ClassifierMixin):
+        warn("did you pass a valid sklearn model?")
+
+    classifier_pipeline = make_pipeline(StandardScaler(), model)
+    
+    cv = KFold(n_splits=10, random_state=0, shuffle=False)
+
+    sfs1 = SFS(classifier_pipeline, 
+        k_features=(1, 100), 
+        forward=True, 
+        scoring='accuracy',
+        cv=cv,
+        n_jobs=-1
+    )
+
+    sfs1.fit(x,y)
+    time_end = time.time()
+    time_run = time_end - time_start
+    print(model, time_run)
+
+    return {"model": model, "features": sfs1.k_feature_idx_, "scores": sfs1.k_score_}
