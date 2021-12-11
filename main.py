@@ -19,7 +19,7 @@ np.random.seed(42)
 [x,y] = Read_data_output_class2_or_testdata(binary=True, training_data=True, filename = "npf_train.csv")
 [x_test,y_test] = Read_data_output_class2_or_testdata(binary=False, training_data=False, filename = "npf_test_hidden.csv")
 
-PCA_num = 15
+PCA_num = 30
 x = scaling(x)
 [x_PCA, pca] = training_with_PCA(x,PCA_num)
 [x_train, x_val, y_train, y_val] = train_test_split(x_PCA, y, test_size=0.33)
