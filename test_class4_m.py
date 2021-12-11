@@ -73,4 +73,4 @@ print(model_results.sort_values('Validation Perplex', ascending=False).head(5))
 print("Least accurate")
 print(model_results.sort_values('Validation Accuracy', ascending=True).head(5))
 
-pickle.dump(model_results, open('CV_RESULTS.pickle', 'wb'))
+pickle.dump(model_results, open('CV_RESULTS_class4.pickle', 'wb'))
