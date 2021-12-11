@@ -48,8 +48,8 @@ def runModel(model: ClassifierMixin, x_train: ndarray, x_valid: ndarray, y_train
     try:
         probs_train = model.predict_proba(x_train)
         probs_valid = model.predict_proba(x_valid)
-        perplex_train = perplexity(y_train, probs_train[:,0])
-        perplex_valid = perplexity(y_valid, probs_valid[:,0])
+        perplex_train = perplexity(y_train, probs_train)
+        perplex_valid = perplexity(y_valid, probs_valid)
     except AttributeError:
         warn(f'Model {getNiceModelName(model)} could not predict probabilities')
     
