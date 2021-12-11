@@ -88,8 +88,8 @@ def runModelCV(model: ClassifierMixin, model_params: dict, x: ndarray, y: ndarra
         try:
             probs_train = model.predict_proba(X_train)
             probs_test = model.predict_proba(X_test)
-            perplex_train = perplexity(y_train, probs_train[:,0])
-            perplex_test = perplexity(y_test, probs_test[:,0])
+            perplex_train = perplexity(y_train, probs_train)
+            perplex_test = perplexity(y_test, probs_test)
         except AttributeError:
             warn(f'Model {getNiceModelName(model)} could not predict probabilities')
         
@@ -120,6 +120,17 @@ def perplexity(y, y_prob):
 
 def getNiceModelName(m):
     return m.__str__().split('(')[0]
+
+
+def Read_data_output_class4(filename="npf_train.csv"):
+    npf = pd.read_csv(filename)
+    npf = npf.set_index("date")
+    npf["class4"] = npf["class4"].astype("category")
+    npf = npf.drop("id", axis=1)
+    npf = npf.drop("partlybad", axis=1)
+    y = npf["class4"]
+    x = npf.drop("class4", axis=1)
+    return x, y
 
 def Read_data_output_class2_or_testdata(binary = bool, training_data = bool, filename="npf_train.csv"):
     # Reads data from training or test files, and outputs x and y if the data is for training for class 2
