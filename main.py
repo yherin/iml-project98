@@ -12,19 +12,37 @@ from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-from project_utils import runModel, optimiseModelParams, split_and_scale, Read_data_output_class2_or_testdata, training_with_PCA, split_training_validate, scaling, runModelCV
+from project_utils import runModel, optimiseModelParams, split_and_scale, Read_data_output_class2_or_testdata, \
+    training_with_PCA, split_training_validate, scaling, runModelCV, Read_data_output_class4, runModelStepwiseSelection
 #from project_utils import runModel, split_and_scale
 from scipy.stats import uniform
 np.random.seed(42)
 
 
-[x,y] = Read_data_output_class2_or_testdata(binary=True, training_data=True, filename = "npf_train.csv")
-[x_test,y_test] = Read_data_output_class2_or_testdata(binary=False, training_data=False, filename = "npf_test_hidden.csv")
+#[x,y] = Read_data_output_class2_or_testdata(binary=True, training_data=True, filename = "npf_train.csv")
+#[x_test,y_test] = Read_data_output_class2_or_testdata(binary=False, training_data=False, filename = "npf_test_hidden.csv")
+[x,y] = Read_data_output_class4("npf_train.csv")
 
-PCA_num = 15
-x = scaling(x)
-[x_PCA, pca] = training_with_PCA(x,PCA_num)
-[x_train, x_val, y_train, y_val] = train_test_split(x_PCA, y, test_size=0.33)
+
+
+
+question = 'Feature selection: PCA (p) or Stepwise (s) ? p/s'
+choice = input(question)
+if choice == 'p': #pca
+
+    PCA_num = 15
+    x = scaling(x)
+    [x_PCA, pca] = training_with_PCA(x,PCA_num)
+    [x_train, x_val, y_train, y_val] = train_test_split(x_PCA, y, test_size=0.33)
+
+elif choice == 's': #stepwise
+    """ IMPLEMENT STEPWISE SELECTION HERE"""
+    #stepwise_results = runModelStepwiseSelection(x=x, y=y, )
+    #is this stepwise going to be computed for every model?
+else:
+    raise ValueError('Invalid input: choose p or s')
+
+
 
 #Define your model parametrs here and add them to the list
 
@@ -39,22 +57,10 @@ nb_params = {}
 
 svm = SVC(probability=True)
 svm_params = dict(C=uniform(loc=0, scale=4), kernel=['sigmoid', 'rbf', 'poly'])
-#xcols = xdf.columns
 
 models = [rf, lr, nb, svm]
 model_params = [rf_params, lr_params, nb_params, svm_params]
 
-#Run the models and get the results
-#measures = [runModel(m, x_train, x_val, y_train, y_val) for m in models]
-#measures = [runModel(m, *split_and_scale(xdf, ydf)) for m in models]
-#results = pd.DataFrame(measures, columns=['Name', 'Train Accuracy', 'Train Perplex', 'Valid Accuracy', 'Valid Perplex'])
-
-#model_results: pd.DataFrame = None
-#model_dict = {}
-
-
-#models = [ lr ]
-#model_params = [ lr_params ]
 model_dict = {}
 model_results = None
 for m, mp in zip(models, model_params):

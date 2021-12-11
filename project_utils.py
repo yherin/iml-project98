@@ -16,6 +16,7 @@ import pickle
 import copy
 
 import time
+import os
 from sklearn.pipeline import make_pipeline
 from mlxtend.feature_selection import SequentialFeatureSelector as SFS
 
@@ -115,7 +116,7 @@ def optimiseModelParams(model: ClassifierMixin, paramDistributions: dict, x: nda
     kfolds = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=n_iterations)
     searcher = RandomizedSearchCV(estimator=model, param_distributions=paramDistributions, n_iter = n_iterations, n_jobs=-1, refit=True, cv=kfolds)
     searcher.fit(x,y)
-    pickle.dump(pd.DataFrame(searcher.cv_results_), open(f'{getNiceModelName(model)}-parameter_tuning.pickle', 'wb'))
+    pickle.dump(pd.DataFrame(searcher.cv_results_), open(f'{getNiceModelName(model)}-{generate_file_id()}.pickle', 'wb'))
     return searcher.best_params_
 
 def perplexity(y, y_prob):
@@ -218,3 +219,7 @@ def runModelStepwiseSelection(model: ClassifierMixin, x: ndarray, y: ndarray):
     print(model, time_run)
 
     return {"model": model, "features": sfs1.k_feature_idx_, "scores": sfs1.k_score_}
+
+
+def generate_file_id():
+    return "-".join([time.strftime('%d%m%y_%H%M%S'), os.getlogin()])
