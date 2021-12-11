@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import pickle
+import time
+import os
 from matplotlib import pyplot as plt
 from scipy.sparse.construct import rand
 from sklearn.ensemble import RandomForestClassifier
@@ -72,5 +74,9 @@ print("Most perplexed")
 print(model_results.sort_values('Validation Perplex', ascending=False).head(5))
 print("Least accurate")
 print(model_results.sort_values('Validation Accuracy', ascending=True).head(5))
+#save the actual models and the performance results here
 
-pickle.dump(model_results, open('CV_RESULTS.pickle', 'wb'))
+ts = time.strftime('%d%m%y_%H%M%S')
+unam = os.getlogin()
+pickle.dump(models, open(f'models-{ts}-{unam}.pickle', 'wb'))
+pickle.dump(model_results, open(f'CV_RESULTS-{ts}-{unam}.pickle', 'wb'))
