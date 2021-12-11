@@ -26,7 +26,7 @@ np.random.seed(42)
 
 
 
-question = 'Feature selection: PCA (p) or Stepwise (s) ? p/s'
+question = 'Feature selection: PCA (p) or Stepwise (s) ? [p/s]:\t'
 choice = input(question)
 if choice == 'p': #pca
 
