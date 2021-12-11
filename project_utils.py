@@ -11,6 +11,8 @@ from sklearn.decomposition import PCA
 from warnings import warn
 from sklearn.metrics import log_loss
 from sklearn.model_selection import RepeatedStratifiedKFold, RandomizedSearchCV, KFold
+from sklearn.preprocessing import LabelEncoder
+from dummy_classifier import DummyClassifier
 import pickle
 
 import copy
@@ -75,7 +77,8 @@ def runModelCV(model: ClassifierMixin, model_params: dict, x: ndarray, y: ndarra
     if not isinstance(model, ClassifierMixin):
         warn("did you pass a valid sklearn model?")
     optimisedParams = optimiseModelParams(model, model_params, x, y )
-    model.set_params(**optimisedParams)
+    if optimisedParams is not None:
+        model.set_params(**optimisedParams)
     kfolds = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=n_iterations)
 
     j = 0
@@ -112,7 +115,9 @@ def runModelCV(model: ClassifierMixin, model_params: dict, x: ndarray, y: ndarra
     model_results = pd.DataFrame({"Train Accuracy": acc_tr, "Train Perplex": per_tr, "Validation Accuracy": acc_te, "Validation Perplex": per_te, "Params": str(optimisedParams)}, index=modelIndices)
     return model_results, modelDict
 
-def optimiseModelParams(model: ClassifierMixin, paramDistributions: dict, x: ndarray, y: ndarray, n_iterations: int=20, k_folds: int=10):
+def optimiseModelParams(model: ClassifierMixin, paramDistributions: dict, x: ndarray, y: ndarray, n_iterations: int=20, k_folds: int=5):
+    if isinstance(model, DummyClassifier):
+        return None
     kfolds = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=n_iterations)
     searcher = RandomizedSearchCV(estimator=model, param_distributions=paramDistributions, n_iter = n_iterations, n_jobs=-1, refit=True, cv=kfolds)
     searcher.fit(x,y)
@@ -134,7 +139,11 @@ def Read_data_output_class4(filename="npf_train.csv"):
     npf = npf.drop("partlybad", axis=1)
     y = npf["class4"]
     x = npf.drop("class4", axis=1)
-    return x, y
+
+    #encode y
+    enc = LabelEncoder()
+    y_encoded = enc.fit_transform(y.values)
+    return x, y_encoded
 
 def Read_data_output_class2_or_testdata(binary = bool, training_data = bool, filename="npf_train.csv"):
     # Reads data from training or test files, and outputs x and y if the data is for training for class 2
@@ -187,8 +196,8 @@ def split_training_validate(x,y,n):
     y_validate = np.delete(y, index, axis=0)
     return x_training, y_training, x_validate, y_validate
 
-def scaling(x):
-    scaler = StandardScaler()
+def scaling(x, scaler_obj=StandardScaler):
+    scaler = scaler_obj()
     scaler.fit(x)
     x_scaled = scaler.transform(x)
     return x_scaled

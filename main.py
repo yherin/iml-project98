@@ -6,12 +6,13 @@ import os
 from matplotlib import pyplot as plt
 from scipy.sparse.construct import rand
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression 
-from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB, MultinomialNB
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.model_selection import train_test_split
+from dummy_classifier import DummyClassifier
 from project_utils import runModel, optimiseModelParams, split_and_scale, Read_data_output_class2_or_testdata, \
     training_with_PCA, split_training_validate, scaling, runModelCV, Read_data_output_class4, runModelStepwiseSelection
 #from project_utils import runModel, split_and_scale
@@ -46,20 +47,39 @@ else:
 
 #Define your model parametrs here and add them to the list
 
+#class weights in training set
+#II: 117, Ia: 29, Ib: 83, nonevent: 229
+#this is artificially 50/50, we know in the training data there are slighty more nonevents
+#II = 0 - weight 0.255
+#Ia = 1 - weight 0.063
+#Ib = 2 - weight 0.181
+#nonevent = 3 - weight 0.5
+
+
+adjusted_weights = {0: 0.24, 1: 0.05, 2: 0.16, 3: 0.55}
+
+#c = np.linspace(0,2,100)
+#l1 = np.linspace(0,1,100)
 rf = RandomForestClassifier()
-rf_params = dict(min_samples_split=[2,3,4,5,6], min_samples_leaf=[1,2,3,4,5,6])
+#rf_params = dict(min_samples_split=[2,3,4,5,6], min_samples_leaf=[1,2,3,4,5,6], class_weight=[adjusted_weights])
+rf_params = dict(min_samples_split=[2,3,4,5,6], min_samples_leaf=[2,3,4,5,6], class_weight=[adjusted_weights])
 
-lr = LogisticRegression()
-lr_params = dict(C=uniform(loc=0, scale=4), penalty=['l2'], solver=['newton-cg', 'lbfgs'])
+#lr = LogisticRegression(max_iter=1000)
+#lr_params = dict( penalty=['l2'], solver=['lbfgs', 'newton-cg', 'sag'], class_weight=[adjusted_weights], multi_class=['multinomial'])
 
-nb = GaussianNB()
-nb_params = {}
+lre = LogisticRegression(max_iter=1000)
+lre_params = dict( l1_ratio=[0.5], penalty=['elasticnet', 'l1', 'l2'], solver=['saga'], class_weight=[adjusted_weights], multi_class=['multinomial'])
 
-svm = SVC(probability=True)
-svm_params = dict(C=uniform(loc=0, scale=4), kernel=['sigmoid', 'rbf', 'poly'])
+nb = GaussianNB(priors=np.array([0.24, 0.05, 0.16, 0.55]))
+nb_params = dict()
 
-models = [rf, lr, nb, svm]
-model_params = [rf_params, lr_params, nb_params, svm_params]
+svm = SVC()
+svm_params = dict(kernel=['sigmoid', 'rbf', 'poly'], degree=[2,3], class_weight=[adjusted_weights], probability=[True])
+#svm_params = dict(C=c,  kernel=['sigmoid', 'rbf', 'poly'], class_weight=[adjusted_weights], probability=[True])
+
+
+models = [rf,  lre,  nb, svm]
+model_params = [rf_params, lre_params, nb_params, svm_params]
 
 model_dict = {}
 model_results = None
@@ -84,5 +104,5 @@ print(model_results.sort_values('Validation Accuracy', ascending=True).head(5))
 
 ts = time.strftime('%d%m%y_%H%M%S')
 unam = os.getlogin()
-pickle.dump(models, open(f'models-{ts}-{unam}.pickle', 'wb'))
+pickle.dump(model_dict, open(f'models-{ts}-{unam}.pickle', 'wb'))
 pickle.dump(model_results, open(f'CV_RESULTS-{ts}-{unam}.pickle', 'wb'))
