@@ -30,11 +30,11 @@ def writeFile( filePath: str, data: DataFrame, modelScore: float):
     _run_tests(data, modelScore)
 
     fo = open(filePath, 'w', encoding='UTF-8')
-    fo.write(f'{modelScore}\n')
+    fo.write(f'{modelScore:.3f}\n')
     fo.close()
     sleep(1)
     fo = open(filePath, 'a', encoding='UTF-8')
-    data.to_csv(fo, sep=',', index=False, index_label=False)
+    data.to_csv(fo, sep=',', index=False, index_label=False, float_format='%.3f')
     fo.close()
     print(f'File written to {filePath}')
 

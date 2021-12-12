@@ -22,8 +22,10 @@ np.random.seed(42)
 
 #[x,y] = Read_data_output_class2_or_testdata(binary=True, training_data=True, filename = "npf_train.csv")
 #[x_test,y_test] = Read_data_output_class2_or_testdata(binary=False, training_data=False, filename = "npf_test_hidden.csv")
-[x,y, enc] = Read_data_output_class4("npf_train.csv")
+x,y, enc = Read_data_output_class4("npf_train.csv")
 
+#save the encoded training data incase we would need it later
+pickle.dump(enc, open('y_encoder.pickle', 'wb'))
 
 
 
@@ -36,8 +38,14 @@ if choice == 'p': #pca
     [x_PCA, pca] = training_with_PCA(x,PCA_num)
     [x_train, x_val, y_train, y_val] = train_test_split(x_PCA, y, test_size=0.33)
 
+    #save encoded training data for later use
+    pickle.dump(pca, open('pca_model.pickle', 'wb'))
+    pickle.dump(x_PCA, open('X_train_PCA.pickle', 'wb'))
+    pickle.dump(y, open('y_train.pickle', 'wb'))
+
 elif choice == 's': #stepwise
     """ IMPLEMENT STEPWISE SELECTION HERE"""
+    raise NotImplementedError("Not yet implemented")
     #stepwise_results = runModelStepwiseSelection(x=x, y=y, )
     #is this stepwise going to be computed for every model?
 else:
@@ -58,23 +66,23 @@ else:
 
 adjusted_weights = {0: 0.24, 1: 0.05, 2: 0.16, 3: 0.55}
 
-#c = np.linspace(0,2,100)
-#l1 = np.linspace(0,1,100)
+c = np.linspace(0,2,100)
+l1 = np.linspace(0,1,100)
 rf = RandomForestClassifier()
 #rf_params = dict(min_samples_split=[2,3,4,5,6], min_samples_leaf=[1,2,3,4,5,6], class_weight=[adjusted_weights])
 rf_params = dict(min_samples_split=[2,3,4,5,6], min_samples_leaf=[2,3,4,5,6], class_weight=[adjusted_weights])
 
-#lr = LogisticRegression(max_iter=1000)
-#lr_params = dict( penalty=['l2'], solver=['lbfgs', 'newton-cg', 'sag'], class_weight=[adjusted_weights], multi_class=['multinomial'])
+lr = LogisticRegression(max_iter=1000)
+lr_params = dict( penalty=['l2'], solver=['lbfgs', 'newton-cg', 'sag'], class_weight=[adjusted_weights], multi_class=['multinomial'])
 
 lre = LogisticRegression(max_iter=1000)
-lre_params = dict( l1_ratio=[0.5], penalty=['elasticnet', 'l1', 'l2'], solver=['saga'], class_weight=[adjusted_weights], multi_class=['multinomial'])
+lre_params = dict( l1_ratio=l1, penalty=['elasticnet', 'l1', 'l2'], solver=['saga'], class_weight=[adjusted_weights], multi_class=['multinomial'])
 
 nb = GaussianNB(priors=np.array([0.24, 0.05, 0.16, 0.55]))
 nb_params = dict()
 
 svm = SVC()
-svm_params = dict(kernel=['sigmoid', 'rbf', 'poly'], degree=[2,3], class_weight=[adjusted_weights], probability=[True])
+svm_params = dict(kernel=['sigmoid', 'rbf', 'poly'], degree=[2,3], class_weight=[adjusted_weights], probability=[True], decision_function_shape=['ovo', 'ovr'])
 #svm_params = dict(C=c,  kernel=['sigmoid', 'rbf', 'poly'], class_weight=[adjusted_weights], probability=[True])
 
 

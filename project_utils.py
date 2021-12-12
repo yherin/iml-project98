@@ -115,7 +115,7 @@ def runModelCV(model: ClassifierMixin, model_params: dict, x: ndarray, y: ndarra
     model_results = pd.DataFrame({"Train Accuracy": acc_tr, "Train Perplex": per_tr, "Validation Accuracy": acc_te, "Validation Perplex": per_te, "Params": str(optimisedParams)}, index=modelIndices)
     return model_results, modelDict
 
-def optimiseModelParams(model: ClassifierMixin, paramDistributions: dict, x: ndarray, y: ndarray, n_iterations: int=20, k_folds: int=5):
+def optimiseModelParams(model: ClassifierMixin, paramDistributions: dict, x: ndarray, y: ndarray, n_iterations: int=50, k_folds: int=5):
     if isinstance(model, DummyClassifier):
         return None
     kfolds = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=n_iterations)
@@ -175,17 +175,17 @@ def Read_data_output_class2_or_testdata(binary = bool, training_data = bool, fil
     x = x.drop("class4", axis=1)
     return x,y
 
-def training_with_PCA(x_training, *num_PCA):
+def training_with_PCA(x_training, num_PCA=15):
     #outputs PCA
     # example:
     # [x_PCA,pca] = training_with_PCA(x,15)
     # if required all PCA values
     # [x_PCA, pca] = training_with_PCA(x)
-    pca = PCA()
+    pca = PCA(n_components=num_PCA)
     x_training_PCA = pca.fit_transform(x_training)
-    if len(num_PCA)>0:
-        num_PCA = int(num_PCA[0])
-        x_training_PCA = x_training_PCA[:, :num_PCA]
+    #if len(num_PCA)>0:
+    #    num_PCA = int(num_PCA[0])
+    #    x_training_PCA = x_training_PCA[:, :num_PCA]
     return x_training_PCA, pca
 
 def split_training_validate(x,y,n):
