@@ -43,9 +43,34 @@ if choice == 'p': #pca
     pickle.dump(x_PCA, open('X_train_PCA.pickle', 'wb'))
     pickle.dump(y, open('y_train.pickle', 'wb'))
 
+    adjusted_weights = {0: 0.24, 1: 0.05, 2: 0.16, 3: 0.55}
+
+    c = np.linspace(0,2,100)
+    l1 = np.linspace(0,1,100)
+    rf = RandomForestClassifier()
+    #rf_params = dict(min_samples_split=[2,3,4,5,6], min_samples_leaf=[1,2,3,4,5,6], class_weight=[adjusted_weights])
+    rf_params = dict(min_samples_split=[2,3,4,5,6], min_samples_leaf=[2,3,4,5,6], class_weight=[adjusted_weights])
+
+    lr = LogisticRegression(max_iter=1000)
+    lr_params = dict( penalty=['l2'], solver=['lbfgs', 'newton-cg', 'sag'], class_weight=[adjusted_weights], multi_class=['multinomial'])
+
+    lre = LogisticRegression(max_iter=1000)
+    lre_params = dict( l1_ratio=l1, penalty=['elasticnet', 'l1', 'l2'], solver=['saga'], class_weight=[adjusted_weights], multi_class=['multinomial'])
+
+    nb = GaussianNB(priors=np.array([0.24, 0.05, 0.16, 0.55]))
+    nb_params = dict()
+
+    svm = SVC()
+    svm_params = dict(kernel=['sigmoid', 'rbf', 'poly'], degree=[2,3], class_weight=[adjusted_weights], probability=[True], decision_function_shape=['ovo', 'ovr'])
+    #svm_params = dict(C=c,  kernel=['sigmoid', 'rbf', 'poly'], class_weight=[adjusted_weights], probability=[True])
+
+
+    models = [rf,  lre,  nb, svm]
+    model_params = [rf_params, lre_params, nb_params, svm_params]
+
+
 elif choice == 's': #stepwise
     """ IMPLEMENT STEPWISE SELECTION HERE"""
-    raise NotImplementedError("Not yet implemented")
     #stepwise_results = runModelStepwiseSelection(x=x, y=y, )
     #is this stepwise going to be computed for every model?
     rf_ = RandomForestClassifier(n_estimators=50, random_state=42, class_weight={1: 0.55, 0:0.45}, min_samples_leaf=5, min_samples_split=5)
@@ -53,6 +78,7 @@ elif choice == 's': #stepwise
     nb_ = GaussianNB()
     svm_ = SVC(probability=True)
     models_ = [rf_, lr_, nb_, svm_]
+    model_params = [dict(), dict(), dict(), dict()] #need this or it might crash
     stepWiseSelection = []
     for m in models_:
         stepWiseSelection.append(runModelStepwiseSelection(m, x, y))    
@@ -72,30 +98,7 @@ else:
 #nonevent = 3 - weight 0.5
 
 
-adjusted_weights = {0: 0.24, 1: 0.05, 2: 0.16, 3: 0.55}
 
-c = np.linspace(0,2,100)
-l1 = np.linspace(0,1,100)
-rf = RandomForestClassifier()
-#rf_params = dict(min_samples_split=[2,3,4,5,6], min_samples_leaf=[1,2,3,4,5,6], class_weight=[adjusted_weights])
-rf_params = dict(min_samples_split=[2,3,4,5,6], min_samples_leaf=[2,3,4,5,6], class_weight=[adjusted_weights])
-
-lr = LogisticRegression(max_iter=1000)
-lr_params = dict( penalty=['l2'], solver=['lbfgs', 'newton-cg', 'sag'], class_weight=[adjusted_weights], multi_class=['multinomial'])
-
-lre = LogisticRegression(max_iter=1000)
-lre_params = dict( l1_ratio=l1, penalty=['elasticnet', 'l1', 'l2'], solver=['saga'], class_weight=[adjusted_weights], multi_class=['multinomial'])
-
-nb = GaussianNB(priors=np.array([0.24, 0.05, 0.16, 0.55]))
-nb_params = dict()
-
-svm = SVC()
-svm_params = dict(kernel=['sigmoid', 'rbf', 'poly'], degree=[2,3], class_weight=[adjusted_weights], probability=[True], decision_function_shape=['ovo', 'ovr'])
-#svm_params = dict(C=c,  kernel=['sigmoid', 'rbf', 'poly'], class_weight=[adjusted_weights], probability=[True])
-
-
-models = [rf,  lre,  nb, svm]
-model_params = [rf_params, lre_params, nb_params, svm_params]
 
 model_dict = {}
 model_results = None

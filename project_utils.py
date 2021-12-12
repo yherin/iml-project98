@@ -103,7 +103,7 @@ def runModelCV(model: ClassifierMixin, model_params: dict, x: ndarray, y: ndarra
         
         j += 1
         #save everything
-        modelIndex = f'{getNiceModelName(model)}-{j}'
+        modelIndex = f'{getNiceModelName(model)}-{generate_model_suffix()}'
         modelIndices.append(modelIndex)
         per_tr.append(perplex_train)
         per_te.append(perplex_test)
@@ -115,7 +115,7 @@ def runModelCV(model: ClassifierMixin, model_params: dict, x: ndarray, y: ndarra
     model_results = pd.DataFrame({"Train Accuracy": acc_tr, "Train Perplex": per_tr, "Validation Accuracy": acc_te, "Validation Perplex": per_te, "Params": str(optimisedParams)}, index=modelIndices)
     return model_results, modelDict
 
-def optimiseModelParams(model: ClassifierMixin, paramDistributions: dict, x: ndarray, y: ndarray, n_iterations: int=50, k_folds: int=5):
+def optimiseModelParams(model: ClassifierMixin, paramDistributions: dict, x: ndarray, y: ndarray, n_iterations: int=25, k_folds: int=5):
     if isinstance(model, DummyClassifier):
         return None
     kfolds = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=n_iterations)
@@ -212,7 +212,7 @@ def runModelStepwiseSelection(model: ClassifierMixin, x: ndarray, y: ndarray):
 
     classifier_pipeline = make_pipeline(StandardScaler(), model)
     
-    cv = KFold(n_splits=10, random_state=0, shuffle=False)
+    cv = KFold(n_splits=10, random_state=0, shuffle=True)
 
     sfs1 = SFS(classifier_pipeline, 
         k_features=(1, 100), 
@@ -232,3 +232,6 @@ def runModelStepwiseSelection(model: ClassifierMixin, x: ndarray, y: ndarray):
 
 def generate_file_id():
     return "-".join([time.strftime('%d%m%y_%H%M%S'), os.getlogin()])
+
+def generate_model_suffix():
+    return f'-{time.strftime("%H%M%S")}'
