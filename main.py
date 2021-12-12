@@ -48,6 +48,14 @@ elif choice == 's': #stepwise
     raise NotImplementedError("Not yet implemented")
     #stepwise_results = runModelStepwiseSelection(x=x, y=y, )
     #is this stepwise going to be computed for every model?
+    rf_ = RandomForestClassifier(n_estimators=50, random_state=42, class_weight={1: 0.55, 0:0.45}, min_samples_leaf=5, min_samples_split=5)
+    lr_ = LogisticRegression(max_iter=10)
+    nb_ = GaussianNB()
+    svm_ = SVC(probability=True)
+    models_ = [rf_, lr_, nb_, svm_]
+    stepWiseSelection = []
+    for m in models_:
+        stepWiseSelection.append(runModelStepwiseSelection(m, x, y))    
 else:
     raise ValueError('Invalid input: choose p or s')
 
@@ -91,8 +99,14 @@ model_params = [rf_params, lre_params, nb_params, svm_params]
 
 model_dict = {}
 model_results = None
+i = 0
 for m, mp in zip(models, model_params):
-    results, md = runModelCV(model=m, model_params=mp, x=x_PCA, y=y, n_iterations=5, k_folds=5)
+    if (choice == 'p'):
+        results, md = runModelCV(model=m, model_params=mp, x=x_PCA, y=y, n_iterations=5, k_folds=5)
+    else:
+        x_loc = scaling(x.iloc[:,np.array(stepWiseSelection[i]['features'])])
+        results, md = runModelCV(model=m, model_params=mp, x=x_loc, y=y, n_iterations=5, k_folds=5)
+        i += 1
     if model_results is None:
         model_results = results
     else:
