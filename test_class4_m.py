@@ -15,7 +15,7 @@ from project_utils import runModel, optimiseModelParams, split_and_scale, Read_d
 from scipy.stats import uniform
 np.random.seed(42)
 
-[x, y ] = Read_data_output_class4(filename="npf_train.csv")
+[x, y , enc] = Read_data_output_class4(filename="npf_train.csv")
 #[x,y] = Read_data_output_class2_or_testdata(binary=True, training_data=True, filename = "npf_train.csv")
 [x_test,y_test] = Read_data_output_class2_or_testdata(binary=False, training_data=False, filename = "npf_test_hidden.csv")
 

@@ -143,7 +143,7 @@ def Read_data_output_class4(filename="npf_train.csv"):
     #encode y
     enc = LabelEncoder()
     y_encoded = enc.fit_transform(y.values)
-    return x, y_encoded
+    return x, y_encoded, enc
 
 def Read_data_output_class2_or_testdata(binary = bool, training_data = bool, filename="npf_train.csv"):
     # Reads data from training or test files, and outputs x and y if the data is for training for class 2
