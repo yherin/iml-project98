@@ -63,7 +63,7 @@ def runModel(model: ClassifierMixin, x_train: ndarray, x_valid: ndarray, y_train
     return getNiceModelName(model), accuracy_train, perplex_train, accuracy_valid, perplex_valid
 
 
-def runModelCV(model: ClassifierMixin, model_params: dict, x: ndarray, y: ndarray, n_iterations: int=10, k_folds: int=5) -> Tuple[float, float, float, float]:
+def runModelCV(model: ClassifierMixin, model_params: dict, x: ndarray, y: ndarray, strategy: str, n_iterations: int=10, k_folds: int=5) -> Tuple[float, float, float, float]:
     per_tr = []
     per_te = []
     acc_tr = []
@@ -112,7 +112,7 @@ def runModelCV(model: ClassifierMixin, model_params: dict, x: ndarray, y: ndarra
 
         modelDict[modelIndex] = copy.deepcopy(model)
     print( f'runModelCV call done' )
-    model_results = pd.DataFrame({"Train Accuracy": acc_tr, "Train Perplex": per_tr, "Validation Accuracy": acc_te, "Validation Perplex": per_te, "Params": str(optimisedParams)}, index=modelIndices)
+    model_results = pd.DataFrame({"Features": [strategy] * len(acc_tr) ,"Train Accuracy": acc_tr, "Train Perplex": per_tr, "Validation Accuracy": acc_te, "Validation Perplex": per_te, "Params": str(optimisedParams)}, index=modelIndices)
     return model_results, modelDict
 
 def optimiseModelParams(model: ClassifierMixin, paramDistributions: dict, x: ndarray, y: ndarray, n_iterations: int=25, k_folds: int=5):
@@ -234,4 +234,4 @@ def generate_file_id():
     return "-".join([time.strftime('%d%m%y_%H%M%S'), os.getlogin()])
 
 def generate_model_suffix():
-    return f'-{time.strftime("%H%M%S")}'
+    return f'-{time.strftime("%H%M%S")}-{np.random.randint(0,100)}'
